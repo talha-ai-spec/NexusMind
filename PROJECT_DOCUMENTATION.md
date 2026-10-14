@@ -380,7 +380,15 @@ uv run fastapi dev
 * **Live Log Dashboard**: [http://localhost:8000/api/logs/view](http://localhost:8000/api/logs/view)
 * **Health Check**: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 
-### 10.3 Starting the Frontend Web App
+### 10.3 Starting the LiveKit Voice Agent Worker
+```bash
+cd copilot-app/agent
+uv sync
+uv run python voice_agent.py dev
+```
+* Runs the LiveKit WebRTC Voice Agent worker in local development mode, connecting to the configured LiveKit room and routing audio through the backend API.
+
+### 10.4 Starting the Frontend Web App
 ```bash
 cd copilot-app/web
 npm install
@@ -388,7 +396,7 @@ npm run dev
 ```
 * **Web Application**: [http://localhost:3000](http://localhost:3000)
 
-### 10.4 Running Quality Gates & Tests
+### 10.5 Running Quality Gates & Tests
 ```bash
 # Backend Quality Checks
 cd copilot-app/api
