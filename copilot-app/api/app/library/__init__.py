@@ -46,6 +46,19 @@ def build_engine(settings: LibrarySettings) -> RagEngine | None:
     name = settings.engine_name
     if not name:
         return None
+        # langchain
+    if name == "langchain":
+        from .langchain_engine import LangChainCustomRagEngine
+
+        return LangChainCustomRagEngine(
+            ai_provider=settings.ai_provider,
+            ai_model=settings.ai_model,
+            embedding_model=settings.embedding_model,
+            chunk_size=settings.chunk_size,
+            chunk_overlap=settings.chunk_overlap,
+            top_k=settings.rag_top_k,
+        )
+
     from .gemini import GeminiFileSearchEngine
 
     if name == "offline":

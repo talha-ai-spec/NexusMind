@@ -14,7 +14,14 @@ class LibrarySettings(BaseSettings):
 
     # "gemini" uses Gemini File Search (needs GEMINI_API_KEY). "offline" is a local
     # keyword-search stand-in for development and tests. Empty: gemini when a key is set.
-    rag_engine: Literal["", "gemini", "offline"] = ""
+    # 1. Allow "langchain" as an engine option:
+    rag_engine: Literal["", "gemini", "offline", "langchain"] = ""
+    # 2. ADD YOUR LANGCHAIN SETTINGS HERE:
+    ai_provider: str = "ollama"
+    ai_model: str = "gemma4:31b-cloud"
+    embedding_model: str = "nomic-embed-text:latest"
+    chunk_size: int = 500
+    chunk_overlap: int = 50
     gemini_api_key: SecretStr | None = None  # shared with the Gemini chat provider
 
     # Model that answers questions about files. Must support File Search.

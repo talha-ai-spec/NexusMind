@@ -19,7 +19,7 @@
 * **Real-Time WebRTC Voice Mode**: Natural, low-latency, bidirectional audio conversations powered by LiveKit and Silero Voice Activity Detection (VAD).
 * **Multi-Modal Vision**: Drag-and-drop photos directly into the conversation for visual reasoning, OCR, and diagram explanations.
 * **AI Image Studio (Text-to-Image & Image-to-Image)**: Natural language in-chat triggering (`"Generate a logo for..."` or `"Edit this photo..."`) with an automated fallback pipeline (Pollinations FLUX.1 $\rightarrow$ Hugging Face GPU API) and anonymous temporary public relay bridges (`uguu.se` / `freeimage.host`).
-* **Dual-Engine Document RAG**: Ground responses in PDFs, Word documents, text, and markdown files. Choose between completely offline SQLite + hybrid BM25/vector search or cloud-managed Google Gemini File Search, complete with interactive source citation pills (`[^1]`).
+* **Multi-Engine Document RAG**: Ground responses in PDFs, Word documents, text, and markdown files. Choose between **LangChain In-Memory RAG** (with `RecursiveCharacterTextSplitter`, `InMemoryVectorStore`, and pluggable embeddings/models), completely offline SQLite + hybrid search, or cloud-managed Google Gemini File Search, complete with interactive source citation pills (`[^1]`).
 * **Live Observability Dashboard**: Trace every request with ASGI `X-Request-ID` correlation, view recent logs in a 1,000-entry in-memory ring buffer, audit rotating disk logs, and monitor live events via the interactive browser UI at `/api/logs/view`.
 * **Modular Skills Framework**: Reusable capabilities packaged cleanly under [`.claude/skills/`](.claude/skills/) (`add-image-gen`, `image-to-image`, `livekit-voice-mode`, `add-files-library`).
 
@@ -59,7 +59,7 @@
 │   ├── api/                     # FastAPI backend (Python 3.13, uv, ruff, pytest)
 │   │   ├── app/
 │   │   │   ├── core/            # Logging, middleware, body limit, config
-│   │   │   ├── library/         # Dual-engine RAG (offline SQLite + Gemini)
+│   │   │   ├── library/         # Multi-engine RAG (LangChain + offline SQLite + Gemini)
 │   │   │   ├── providers/       # Ollama, OpenAI, Anthropic, Gemini, Grok, Meta
 │   │   │   ├── routes/          # chat, images, voice, library, models, logs
 │   │   │   └── services/        # Chat streaming, image generation & relay
@@ -171,11 +171,12 @@ Type your message or attach images. The system evaluates whether the model suppo
 ### 3. Real-Time WebRTC Voice Mode
 Click the microphone button to initiate a WebRTC audio channel with LiveKit. Silero Voice Activity Detection (VAD) detects when you stop speaking, immediately executing speech-to-text, LLM generation, and text-to-speech with natural latency.
 
-### 4. Dual-Engine Document RAG
+### 4. Multi-Engine Document RAG
 Upload PDFs, Word files, or Markdown notes into Collections. 
-* **Offline Mode**: Uses local SQLite indexing, chunking (500 tokens with 50-token overlap), and vector cosine similarity.
-* **Cloud Mode**: Delegates to Google Gemini File Search for enterprise document corpora.
-* **Citations**: Injects interactive source badges (`[^1]`) linking directly to source excerpts.
+* **LangChain In-Memory Mode (`RAG_ENGINE=langchain`)**: Fast in-memory semantic search powered by LangChain's `RecursiveCharacterTextSplitter`, `InMemoryVectorStore`, and pluggable embeddings (`init_embeddings`) + chat models (`init_chat_model`).
+* **Offline SQLite Mode (`RAG_ENGINE=offline`)**: Local SQLite indexing, chunking (500 tokens with 50-token overlap), and vector cosine similarity with zero external API calls.
+* **Gemini Cloud Mode (`RAG_ENGINE=gemini`)**: Delegates to Google Gemini File Search for massive document corpora.
+* **Citations**: Injects interactive source badges (`[^1]`) linking directly to source excerpts across all engines.
 
 ---
 
@@ -255,9 +256,17 @@ VOICE_AGENT_TOKEN=optional_shared_secret
 HF_TOKEN=your_huggingface_read_token
 DEFAULT_HF_IMAGE_MODEL=black-forest-labs/FLUX.1-schnell
 
-# Document RAG (Google Gemini File Search)
-GEMINI_API_KEY=your_gemini_api_key
+# Document RAG (Choose: "langchain" | "gemini" | "offline")
+RAG_ENGINE=langchain
 RAG_MODEL=gemini-3.8-flash
+GEMINI_API_KEY=your_gemini_api_key
+
+# LangChain RAG Settings (active when RAG_ENGINE=langchain)
+AI_PROVIDER=ollama
+AI_MODEL=gemma4:31b-cloud
+EMBEDDING_MODEL=nomic-embed-text:latest
+CHUNK_SIZE=500
+CHUNK_OVERLAP=50
 
 # Cloud LLM Fallbacks (Optional)
 OPENAI_API_KEY=your_openai_key
